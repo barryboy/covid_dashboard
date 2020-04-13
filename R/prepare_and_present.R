@@ -10,6 +10,9 @@ prepare_data <- function(country, data, window){
   df <- data[data$countriesAndTerritories == country, c('dateRep', 'cases', 'deaths')]
   df$dateRep <- as.character(strptime(df$dateRep, '%d/%m/%Y'))
   df <- df[order(df$dateRep),]
+  print(country)
+  print(nrow(df))
+  if (nrow(df) < 2*window) {return(NULL)}
   df$cumCases <- cumsum(df$cases)
   df$cumDeaths <- cumsum(df$deaths)
   df$avgCases <- ma(df$cases, window)
@@ -22,9 +25,10 @@ prepare_data <- function(country, data, window){
   df
 }
 
-data_countries <- lapply(list('Poland', 'Italy', 'United_States_of_America', 'Romania', 'United_Kingdom', 'Sweden', 'Germany'), prepare_data, data, 5)
+data_countries <- lapply(unique(data$countriesAndTerritories), prepare_data, data, 5)
+#data_countries <- lapply(list('Poland', 'Italy', 'United_States_of_America', 'Romania', 'United_Kingdom', 'Sweden', 'Germany'), prepare_data, data, 5)
 df <- do.call('rbind', data_countries)
-df <- df[df$cumCases > 100 & df$cumDeaths > 10,]
+df <- df[df$cumCases > 1000 & df$cumDeaths > 100,]
 
 
 ggplot(df, aes(x = log10(cumDeaths), y = log10(avgDeaths), color = country, fill = country, label=label)) +
